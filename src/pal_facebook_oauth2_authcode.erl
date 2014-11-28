@@ -50,7 +50,7 @@
 -spec init(options()) -> handler(pal_oauth2_authcode:workflow()).
 init(Opts) ->
 	Opts2 =
-		pt_mlist:merge(
+		pt_kvterm:merge(
 			#{authorization_uri => <<"https://www.facebook.com/dialog/oauth">>,
 				access_token_uri  => <<"https://graph.facebook.com/oauth/access_token">>},
 			Opts),
