@@ -1,7 +1,7 @@
 %% ------------------------------------------------------------------
 %% The MIT License
 %%
-%% Copyright (c) 2014 Andrei Nesterov <ae.nesterov@gmail.com>
+%% Copyright (c) 2014-2015 Andrei Nesterov <ae.nesterov@gmail.com>
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a copy
 %% of this software and associated documentation files (the "Software"), to
@@ -24,14 +24,18 @@
 
 -module(pal_facebook_oauth2_user).
 -behaviour(pal_authentication).
+-behaviour(pal_workflow).
+
+%% Workflow callbacks
+-export([
+	decl/0
+]).
 
 %% Authentication callbacks
 -export([
-	init/1,
-	authenticate/3,
+	authenticate/4,
 	uid/1,
-	info/1,
-	extra/1
+	info/2
 ]).
 
 %% Definitions
@@ -45,57 +49,46 @@
 -define(FACEBOOK, <<"facebook">>).
 
 %% Types
--type input()    :: #{credentials => #{access_token => binary()}}.
--type workflow() :: pal_authentication:workflow().
+-type data() :: #{access_token => binary()}.
 
--record(state, {
-	req_opts :: list()
-}).
+%% ==================================================================
+%% Workflow callbacks
+%% ==================================================================
+
+-spec decl() -> pt_workflow:declaration().
+decl() ->
+	Opts =
+		#{request_options => [{follow_redirect, true}]},
+
+	{pal_authentication, ?MODULE, Opts}.
 
 %% ==================================================================
 %% Authentication callbacks
 %% ==================================================================
 
--spec init(pal_workflow:options()) -> pal_workflow:handler(workflow()).
-init(Opts) ->
-	State = #state{req_opts = pt_mlist:get(request_options, Opts, [{follow_redirect, true}])},
-	pal_authentication:init({{?MODULE, State}, Opts}).
-
--spec authenticate(input(), Req, workflow()) -> {pal_workflow:response(), Req} when Req :: cowboy_req:req().
-authenticate(#{credentials := #{access_token := Token}}, Req, W) ->
+-spec authenticate(list(module()), data(), map(), map()) -> pal_authentication:result().
+authenticate(_, #{access_token := Token}, _, #{request_options := ReqOpts}) ->
 	Uri = <<?INFO_URI/binary, $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
-	State = pal_authentication:handler_state(W),
-	Resp =
-		case hackney:get(Uri, [], <<>>, State#state.req_opts) of
-			{ok, 200, _, Ref} ->
-				pal_oauth2:from_json(Ref, fun(M) ->
-					M
-				end);
-			{ok, _, _, Ref} ->
-				pal_oauth2:from_json(Ref, fun(M) ->
-					{fail, M}
-				end);
-			{error, Reason} ->
-				Message = <<"Info request failed.">>,
-				error_logger:error_report([{message, Message}, {reason, Reason}]),
-				{fail, Message}
-		end,
+	case hackney:get(Uri, [], <<>>, ReqOpts) of
+		{ok, 200, _, Ref} ->
+			{ok, Body} = hackney:body(Ref),
+			{ok, jsx:decode(Body)};
+		{ok, _, _, Ref} ->
+			{ok, Body} = hackney:body(Ref),
+			{error, {facebook_graph, jsx:decode(Body)}};
+		{error, Reason} ->
+			throw({bad_req, Reason})
+	end.
 
-	{Resp, Req}.
+-spec uid(pal_authentication:rawdata()) -> binary().
+uid(Data) ->
+	pt_kvlist:get(?ID, Data).
 
--spec uid(workflow()) -> binary().
-uid(W) ->
-	pt_map:get(?ID, pal_authentication:raw_info(W)).
-
--spec info(workflow()) -> map().
-info(W) ->
-	RawInfo = pal_authentication:raw_info(W),
-	#{name       => pt_map:find(?NAME, RawInfo),
-		first_name => pt_map:find(?FIRST_NAME, RawInfo),
-		last_name  => pt_map:find(?LAST_NAME, RawInfo),
-		urls       => #{?FACEBOOK => pt_map:find(?LINK, RawInfo)}}.
-
--spec extra(workflow()) -> map().
-extra(W) ->
-	#{raw_info => pal_authentication:raw_info(W)}.
+-spec info(pal_authentication:rawdata(), map()) -> map().
+info([{?NAME, Val}|T], M)       -> info(T, M#{name => Val});
+info([{?FIRST_NAME, Val}|T], M) -> info(T, M#{first_name => Val});
+info([{?LAST_NAME, Val}|T], M)  -> info(T, M#{last_name => Val});
+info([{?LINK, Val}|T], M)       -> info(T, M#{urls => maps:put(?FACEBOOK, Val, #{})});
+info([_|T], M)                  -> info(T, M);
+info([], M)                     -> M.
 
