@@ -1,8 +1,8 @@
 # Pragmatic Authentication Library: Facebook OAuth2 workflows
 
-The collection of Facebook OAuth2 workflows for [PAL][pal].
+Collection of Facebook OAuth2 workflows for [PAL][pal].
 
-### 1. The Facebook Login (OAuth2 Authorization Code Grant) workflow
+### 1. Facebook Login (OAuth2 Authorization Code Grant) workflow
 
 For details, read the Facebook [documentation][facebook-authcode].
 
@@ -46,7 +46,7 @@ the authentication schema would be returned:
 
 See the complete example using PAL and [Cowboy][cowboy] HTTP server [here][pal-example].
 
-### 2. The Facebook User (user profile information) workflow
+### 2. Facebook User (user profile information) workflow
 
 #### Options
 
