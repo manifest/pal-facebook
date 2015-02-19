@@ -1,4 +1,4 @@
-%% ------------------------------------------------------------------
+%% ----------------------------------------------------------------------------
 %% The MIT License
 %%
 %% Copyright (c) 2014-2015 Andrei Nesterov <ae.nesterov@gmail.com>
@@ -20,7 +20,7 @@
 %% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 %% FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 %% IN THE SOFTWARE.
-%% ------------------------------------------------------------------
+%% ----------------------------------------------------------------------------
 
 -module(pal_facebook_oauth2_authcode).
 -behaviour(pal_workflow).
@@ -46,11 +46,11 @@
 -define(INFO_URI, <<"https://graph.facebook.com/me">>).
 -define(ERROR, <<"error">>).
 
-%% ==================================================================
+%% ============================================================================
 %% Workflow callbacks
-%% ==================================================================
+%% ============================================================================
 
--spec decl() -> pt_workflow:declaration().
+-spec decl() -> pal_workflow:declaration().
 decl() ->
 	Opts =
 		#{authorization_uri => <<"https://www.facebook.com/dialog/oauth">>,
@@ -59,9 +59,9 @@ decl() ->
 
 	{pal_oauth2_authcode, ?MODULE, Opts}.
 
-%% ==================================================================
+%% ============================================================================
 %% OAuth2 AuthCode Workflow callbacks
-%% ==================================================================
+%% ============================================================================
 
 -spec access_token_request(map()) -> pal_authentication:result().
 access_token_request(State) ->
@@ -81,9 +81,9 @@ access_token_request(State) ->
 			throw({bad_req, Reason})
 	end.
 
-%% ==================================================================
+%% ============================================================================
 %% Authentication workflow callbacks
-%% ==================================================================
+%% ============================================================================
 
 -spec credentials(pal_authentication:rawdata(), map()) -> map().
 credentials([{?ACCESS_TOKEN, Val}|T], M) -> credentials(T, M#{access_token => Val});
