@@ -43,7 +43,6 @@
 %% Definitions
 -define(ACCESS_TOKEN, <<"access_token">>).
 -define(EXPIRES, <<"expires">>).
--define(INFO_URI, <<"https://graph.facebook.com/me">>).
 -define(ERROR, <<"error">>).
 
 %% ============================================================================

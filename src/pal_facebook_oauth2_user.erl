@@ -40,12 +40,14 @@
 
 %% Definitions
 -define(ACCESS_TOKEN, <<"access_token">>).
--define(INFO_URI, <<"https://graph.facebook.com/me">>).
+-define(GRAPH_API_URI, <<"https://graph.facebook.com">>).
 -define(ID, <<"id">>).
 -define(NAME, <<"name">>).
 -define(FIRST_NAME, <<"first_name">>).
 -define(LAST_NAME, <<"last_name">>).
 -define(LINK, <<"link">>).
+-define(EMAIL, <<"email">>).
+-define(GENDER, <<"gender">>).
 -define(FACEBOOK, <<"facebook">>).
 
 %% Types
@@ -68,7 +70,7 @@ decl() ->
 
 -spec authenticate(list(module()), data(), map(), map()) -> pal_authentication:result().
 authenticate(_, #{access_token := Token}, _, #{request_options := ReqOpts}) ->
-	Uri = <<?INFO_URI/binary, $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
+	Uri = <<?GRAPH_API_URI/binary, "/me", $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
 	case hackney:get(Uri, [], <<>>, ReqOpts) of
 		{ok, 200, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
@@ -85,10 +87,21 @@ uid(Data) ->
 	pt_kvlist:get(?ID, Data).
 
 -spec info(pal_authentication:rawdata(), map()) -> map().
+info([{?ID, ID}|T], M)          -> info(T, M#{image => image(ID)});
 info([{?NAME, Val}|T], M)       -> info(T, M#{name => Val});
 info([{?FIRST_NAME, Val}|T], M) -> info(T, M#{first_name => Val});
 info([{?LAST_NAME, Val}|T], M)  -> info(T, M#{last_name => Val});
+info([{?GENDER, Val}|T], M)     -> info(T, M#{gender => Val});
+info([{?EMAIL, Val}|T], M)      -> info(T, M#{email => Val});
 info([{?LINK, Val}|T], M)       -> info(T, M#{urls => maps:put(?FACEBOOK, Val, #{})});
 info([_|T], M)                  -> info(T, M);
 info([], M)                     -> M.
+
+%% ============================================================================
+%% Internal functions
+%% ============================================================================
+
+-spec image(binary()) -> binary().
+image(ID) ->
+	<<?GRAPH_API_URI/binary, $/, ID/binary, "/picture">>.
 
