@@ -41,7 +41,7 @@ the authentication schema would be returned:
 
 ```erlang
 #{access_token => <<"...">>,
-  expires_in   => 3600}
+  expires_in => <<"5183998">>}
 ```
 
 See the complete example using PAL and [Cowboy][cowboy] HTTP server [here][pal-example].
@@ -69,12 +69,15 @@ If an execution of the `pal:authenticate/{2,3}` function were successful,
 the authentication schema would be returned:
 
 ```erlang
-#{uid  => <<"...">>,
+#{uid => <<"...">>,
   info =>
-    #{name       => <<"John Doe">>,
+    #{name => <<"John Doe">>,
       first_name => <<"John">>,
-      last_name  => <<"Doe">>,
-      urls => #{<<"facebook">> => <<"https://www.facebook.com/...">>}}}
+      last_name => <<"Doe">>,
+      gender => <<"male">>,
+      email => <<"john@example.com">>,
+      image => <<"https://graph.facebook.com/...">>,
+      uri => <<"https://www.facebook.com/...">>}}
 ```
 
 See the complete example using PAL and [Cowboy][cowboy] HTTP server [here][pal-example].

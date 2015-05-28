@@ -48,7 +48,6 @@
 -define(LINK, <<"link">>).
 -define(EMAIL, <<"email">>).
 -define(GENDER, <<"gender">>).
--define(FACEBOOK, <<"facebook">>).
 
 %% Types
 -type data() :: #{access_token => binary()}.
@@ -93,7 +92,7 @@ info([{?FIRST_NAME, Val}|T], M) -> info(T, M#{first_name => Val});
 info([{?LAST_NAME, Val}|T], M)  -> info(T, M#{last_name => Val});
 info([{?GENDER, Val}|T], M)     -> info(T, M#{gender => Val});
 info([{?EMAIL, Val}|T], M)      -> info(T, M#{email => Val});
-info([{?LINK, Val}|T], M)       -> info(T, M#{urls => maps:put(?FACEBOOK, Val, #{})});
+info([{?LINK, Val}|T], M)       -> info(T, M#{uri => Val});
 info([_|T], M)                  -> info(T, M);
 info([], M)                     -> M.
 
