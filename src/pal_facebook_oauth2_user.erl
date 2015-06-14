@@ -39,9 +39,9 @@
 ]).
 
 %% Definitions
--define(ACCESS_TOKEN, <<"access_token">>).
--define(GRAPH_API_URI, <<"https://graph.facebook.com">>).
+-define(GRAPH_API_URI, <<"https://graph.facebook.com/v2.3">>).
 
+-define(ACCESS_TOKEN, <<"access_token">>).
 -define(ID, <<"id">>).
 -define(NAME, <<"name">>).
 -define(FIRST_NAME, <<"first_name">>).
@@ -71,7 +71,11 @@ decl() ->
 -spec authenticate(list(module()), data(), map(), map()) -> pal_authentication:result().
 authenticate(Hs, #{access_token := Token} = Data, Meta, State) ->
 	#{request_options := ReqOpts} = State,
-	Uri = <<?GRAPH_API_URI/binary, "/me", $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
+
+	Uri =
+		<<?GRAPH_API_URI/binary, "/me",
+				$?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
+
 	case hackney:get(Uri, [], <<>>, ReqOpts) of
 		{ok, 200, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
