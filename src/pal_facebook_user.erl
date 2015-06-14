@@ -82,7 +82,7 @@ authenticate(Hs, #{access_token := Token} = Data, Meta, State) ->
 			{ok, jsx:decode(Body)};
 		{ok, _, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
-			{error, {facebook_graph, jsx:decode(Body)}};
+			{error, {facebook_graph, Body}};
 		{error, Reason} ->
 			exit({Reason, {?MODULE, authenticate, [Hs, Data, Meta, State]}})
 	end.
