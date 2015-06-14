@@ -77,7 +77,7 @@ access_token_request(State) ->
 			{ok, Body} = hackney:body(Ref),
 			{error, {facebook_oauth2, jsx:decode(Body)}};
 		{error, Reason} ->
-			throw({bad_req, Reason})
+			exit({Reason, {?MODULE, access_token_request, [State]}})
 	end.
 
 %% ============================================================================

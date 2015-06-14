@@ -41,6 +41,7 @@
 %% Definitions
 -define(ACCESS_TOKEN, <<"access_token">>).
 -define(GRAPH_API_URI, <<"https://graph.facebook.com">>).
+
 -define(ID, <<"id">>).
 -define(NAME, <<"name">>).
 -define(FIRST_NAME, <<"first_name">>).
@@ -68,7 +69,8 @@ decl() ->
 %% ============================================================================
 
 -spec authenticate(list(module()), data(), map(), map()) -> pal_authentication:result().
-authenticate(_, #{access_token := Token}, _, #{request_options := ReqOpts}) ->
+authenticate(Hs, #{access_token := Token} = Data, Meta, State) ->
+	#{request_options := ReqOpts} = State,
 	Uri = <<?GRAPH_API_URI/binary, "/me", $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
 	case hackney:get(Uri, [], <<>>, ReqOpts) of
 		{ok, 200, _, Ref} ->
@@ -78,7 +80,7 @@ authenticate(_, #{access_token := Token}, _, #{request_options := ReqOpts}) ->
 			{ok, Body} = hackney:body(Ref),
 			{error, {facebook_graph, jsx:decode(Body)}};
 		{error, Reason} ->
-			throw({bad_req, Reason})
+			exit({Reason, {?MODULE, authenticate, [Hs, Data, Meta, State]}})
 	end.
 
 -spec uid(pal_authentication:rawdata()) -> binary().
