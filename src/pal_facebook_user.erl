@@ -22,7 +22,7 @@
 %% IN THE SOFTWARE.
 %% ----------------------------------------------------------------------------
 
--module(pal_facebook_oauth2_user).
+-module(pal_facebook_user).
 -behaviour(pal_authentication).
 -behaviour(pal_workflow).
 
@@ -39,7 +39,7 @@
 ]).
 
 %% Definitions
--define(GRAPH_API_URI, <<"https://graph.facebook.com/v2.3">>).
+-define(FACEBOOK_GRAPH_API_URI, <<"https://graph.facebook.com/v2.3">>).
 
 -define(ACCESS_TOKEN, <<"access_token">>).
 -define(ID, <<"id">>).
@@ -73,7 +73,7 @@ authenticate(Hs, #{access_token := Token} = Data, Meta, State) ->
 	#{request_options := ReqOpts} = State,
 
 	Uri =
-		<<?GRAPH_API_URI/binary, "/me",
+		<<?FACEBOOK_GRAPH_API_URI/binary, "/me",
 				$?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
 
 	case hackney:get(Uri, [], <<>>, ReqOpts) of
@@ -108,5 +108,5 @@ info([], M)                     -> M.
 
 -spec image(binary()) -> binary().
 image(ID) ->
-	<<?GRAPH_API_URI/binary, $/, ID/binary, "/picture">>.
+	<<?FACEBOOK_GRAPH_API_URI/binary, $/, ID/binary, "/picture">>.
 
