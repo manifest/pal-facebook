@@ -75,9 +75,9 @@ access_token_request(State) ->
 			{ok, cow_qs:parse_qs(Body)};
 		{ok, _, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
-			{error, {facebook_oauth2, jsx:decode(Body)}};
+			{error, {facebook_oauth2, Body}};
 		{error, Reason} ->
-			throw({bad_req, Reason})
+			exit({Reason, {?MODULE, access_token_request, [State]}})
 	end.
 
 %% ============================================================================

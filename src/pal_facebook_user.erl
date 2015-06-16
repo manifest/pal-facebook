@@ -22,7 +22,7 @@
 %% IN THE SOFTWARE.
 %% ----------------------------------------------------------------------------
 
--module(pal_facebook_oauth2_user).
+-module(pal_facebook_user).
 -behaviour(pal_authentication).
 -behaviour(pal_workflow).
 
@@ -39,8 +39,9 @@
 ]).
 
 %% Definitions
+-define(FACEBOOK_GRAPH_API_URI, <<"https://graph.facebook.com/v2.3">>).
+
 -define(ACCESS_TOKEN, <<"access_token">>).
--define(GRAPH_API_URI, <<"https://graph.facebook.com">>).
 -define(ID, <<"id">>).
 -define(NAME, <<"name">>).
 -define(FIRST_NAME, <<"first_name">>).
@@ -68,17 +69,22 @@ decl() ->
 %% ============================================================================
 
 -spec authenticate(list(module()), data(), map(), map()) -> pal_authentication:result().
-authenticate(_, #{access_token := Token}, _, #{request_options := ReqOpts}) ->
-	Uri = <<?GRAPH_API_URI/binary, "/me", $?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
+authenticate(Hs, #{access_token := Token} = Data, Meta, State) ->
+	#{request_options := ReqOpts} = State,
+
+	Uri =
+		<<?FACEBOOK_GRAPH_API_URI/binary, "/me",
+				$?, ?ACCESS_TOKEN/binary, $=, Token/binary>>,
+
 	case hackney:get(Uri, [], <<>>, ReqOpts) of
 		{ok, 200, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
 			{ok, jsx:decode(Body)};
 		{ok, _, _, Ref} ->
 			{ok, Body} = hackney:body(Ref),
-			{error, {facebook_graph, jsx:decode(Body)}};
+			{error, {facebook_graph, Body}};
 		{error, Reason} ->
-			throw({bad_req, Reason})
+			exit({Reason, {?MODULE, authenticate, [Hs, Data, Meta, State]}})
 	end.
 
 -spec uid(pal_authentication:rawdata()) -> binary().
@@ -102,5 +108,5 @@ info([], M)                     -> M.
 
 -spec image(binary()) -> binary().
 image(ID) ->
-	<<?GRAPH_API_URI/binary, $/, ID/binary, "/picture">>.
+	<<?FACEBOOK_GRAPH_API_URI/binary, $/, ID/binary, "/picture">>.
 
